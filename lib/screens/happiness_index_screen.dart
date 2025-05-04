@@ -57,18 +57,6 @@ class HappinessIndexScreen extends StatelessWidget {
             Text(
               getStatus(averageRating),
               style: TextStyle(fontSize: 20, color: getColor(averageRating)),
-            ),
-            SizedBox(height: 30),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: Icon(Icons.arrow_back),
-              label: Text("Back"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
             )
           ],
         ),
