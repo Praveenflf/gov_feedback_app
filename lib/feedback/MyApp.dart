@@ -5,6 +5,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -19,11 +21,13 @@ class MyApp extends StatelessWidget {
 }
 
 class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: Align(
+          title: const Align(
         alignment: Alignment.center,
         child: Text('Service and Complaint Management'),
       )),
@@ -68,10 +72,10 @@ class HomeScreen extends StatelessWidget {
 
   Widget buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(3 + .2),
       child: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 20.0,
           fontWeight: FontWeight.bold,
           color: Colors.blueAccent,
@@ -83,21 +87,29 @@ class HomeScreen extends StatelessWidget {
 }
 
 class FeedbackSection extends StatefulWidget {
+  const FeedbackSection({super.key});
+
   @override
   _FeedbackSectionState createState() => _FeedbackSectionState();
 }
 
 class HappinessIndexSection extends StatefulWidget {
+  const HappinessIndexSection({super.key});
+
   @override
   _HappinessIndexSectionState createState() => _HappinessIndexSectionState();
 }
 
 class SelfServicePortal extends StatefulWidget {
+  const SelfServicePortal({super.key});
+
   @override
   _SelfServicePortal createState() => _SelfServicePortal();
 }
 
 class FileComplaint extends StatefulWidget {
+  const FileComplaint({super.key});
+
   @override
   _FileComplaint createState() => _FileComplaint();
 }
@@ -107,8 +119,8 @@ class _FileComplaint extends State<FileComplaint> {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        color: Color.fromARGB(255, 159, 236, 104),
-        padding: EdgeInsets.fromLTRB(0, 150, 0, 100),
+        color: const Color.fromARGB(255, 159, 236, 104),
+        padding: const EdgeInsets.fromLTRB(0, 150, 0, 100),
         child: Center(
           child:
               //Function C
@@ -120,11 +132,11 @@ class _FileComplaint extends State<FileComplaint> {
               );
             },
             style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 105, 40, 226),
-                shape: RoundedRectangleBorder(
+                backgroundColor: const Color.fromARGB(255, 105, 40, 226),
+                shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.zero,
                 )),
-            child: Text(
+            child: const Text(
               'File a Complaint',
               style: TextStyle(color: Colors.white),
             ),
@@ -140,8 +152,8 @@ class _SelfServicePortal extends State<SelfServicePortal> {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        color: Color.fromARGB(255, 87, 212, 99),
-        padding: EdgeInsets.fromLTRB(0, 150, 0, 100),
+        color: Color.fromARGB(255, 119, 244, 131),
+        padding: const EdgeInsets.fromLTRB(0, 150, 0, 100),
         child: Center(
           child:
               //Function B
@@ -153,11 +165,11 @@ class _SelfServicePortal extends State<SelfServicePortal> {
               );
             },
             style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 105, 40, 226),
-                shape: RoundedRectangleBorder(
+                backgroundColor: const Color.fromARGB(255, 105, 40, 226),
+                shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.zero,
                 )),
-            child: Text(
+            child: const Text(
               'Self-Service Portal',
               style: TextStyle(color: Colors.white),
             ),
@@ -171,11 +183,7 @@ class _SelfServicePortal extends State<SelfServicePortal> {
 class _HappinessIndexSectionState extends State<HappinessIndexSection> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        color: const Color.fromARGB(255, 249, 208, 155),
-      ),
-    );
+    return Scaffold();
   }
 }
 
@@ -187,27 +195,27 @@ class _FeedbackSectionState extends State<FeedbackSection> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Color.fromARGB(255, 255, 211, 51),
+      color: const Color.fromARGB(255, 255, 211, 51),
       child: Padding(
-        padding: EdgeInsets.all(35),
+        padding: const EdgeInsets.all(35),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: EdgeInsets.all(1),
+              padding: const EdgeInsets.all(1),
               color: Colors.white,
-              child: Text(
+              child: const Text(
                 'Rate our Service:',
                 style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
               ),
             ),
-            SizedBox(height: 5),
+            const SizedBox(height: 5),
             Row(
               children: List.generate(5, (index) {
                 return IconButton(
                   icon: Icon(
                     index < rate ? Icons.star : Icons.star_border,
-                    color: Color.fromARGB(255, 24, 7, 209),
+                    color: const Color.fromARGB(255, 24, 7, 209),
                   ),
                   onPressed: () {
                     setState(() {
@@ -217,34 +225,34 @@ class _FeedbackSectionState extends State<FeedbackSection> {
                 );
               }),
             ),
-            SizedBox(
+            const SizedBox(
               height: 5,
             ),
             Container(
-              padding: EdgeInsets.all(1),
+              padding: const EdgeInsets.all(1),
               color: Colors.white,
-              child: Text(
+              child: const Text(
                 'Comments',
                 style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
               ),
             ),
             TextField(
-              decoration:
-                  InputDecoration(labelText: 'Leave a Comment (Optional)'),
+              decoration: const InputDecoration(
+                  labelText: 'Leave a Comment (Optional)'),
               onChanged: (value) {
                 comment = value; // Update the comment value
               },
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Container(
-              padding: EdgeInsets.all(1),
+              padding: const EdgeInsets.all(1),
               color: Colors.white,
-              child: Text(
+              child: const Text(
                 'Vote for Escalation:',
                 style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
               ),
             ),
-            SizedBox(
+            const SizedBox(
               width: 45,
               height: 20,
             ),
@@ -259,12 +267,12 @@ class _FeedbackSectionState extends State<FeedbackSection> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: voteForEscalation == true
                         ? Colors.blue
-                        : Color.fromARGB(
+                        : const Color.fromARGB(
                             255, 243, 242, 242), // Highlight selection
                   ),
-                  child: Text('Yes'),
+                  child: const Text('Yes'),
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 44,
                 ),
                 ElevatedButton(
@@ -276,14 +284,14 @@ class _FeedbackSectionState extends State<FeedbackSection> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: voteForEscalation == false
                         ? Colors.blue
-                        : Color.fromARGB(
+                        : const Color.fromARGB(
                             255, 243, 242, 242), // Highlight selection
                   ),
-                  child: Text('No'),
+                  child: const Text('No'),
                 ),
               ],
             ),
-            SizedBox(
+            const SizedBox(
               height: 10.0,
             ),
             Center(
@@ -294,7 +302,7 @@ class _FeedbackSectionState extends State<FeedbackSection> {
                     context: context,
                     builder: (context) {
                       return AlertDialog(
-                        title: Text('Feedback Submitted'),
+                        title: const Text('Feedback Submitted'),
                         content: Text(
                             'Rating: $rate\nComment: ${comment ?? "No comment"}\nVote for Escalation: ${voteForEscalation == true ? "Yes" : "No"}'),
                         actions: [
@@ -302,14 +310,14 @@ class _FeedbackSectionState extends State<FeedbackSection> {
                             onPressed: () {
                               Navigator.pop(context);
                             },
-                            child: Text('OK'),
+                            child: const Text('OK'),
                           )
                         ],
                       );
                     },
                   );
                 },
-                child: Text('Submit Feedback'),
+                child: const Text('Submit Feedback'),
               ),
             ),
           ],
@@ -321,22 +329,24 @@ class _FeedbackSectionState extends State<FeedbackSection> {
 
 // Function B: Self-Service List
 class ServiceListScreen extends StatelessWidget {
+  const ServiceListScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Self-Service List'),
+        title: const Text('Self-Service List'),
       ),
       body: ListView(
         children: [
           ListTile(
-            title: Text("Print Form"),
+            title: const Text("Print Form"),
             onTap: () {
               // Implement Print Form functionality
             },
           ),
           ListTile(
-            title: Text("Submit Simple Application"),
+            title: const Text("Submit Simple Application"),
             onTap: () {
               // Implement application submission
             },
@@ -349,6 +359,8 @@ class ServiceListScreen extends StatelessWidget {
 
 // Function C: Complaint Form
 class ComplaintFormScreen extends StatefulWidget {
+  const ComplaintFormScreen({super.key});
+
   @override
   _ComplaintFormScreenState createState() => _ComplaintFormScreenState();
 }
@@ -366,14 +378,14 @@ class _ComplaintFormScreenState extends State<ComplaintFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('File a Complaint'),
+        title: const Text('File a Complaint'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             SwitchListTile(
-              title: Text("Keep Anonymous"),
+              title: const Text("Keep Anonymous"),
               value: keepAnonymous,
               onChanged: (value) {
                 setState(() {
@@ -382,38 +394,40 @@ class _ComplaintFormScreenState extends State<ComplaintFormScreen> {
               },
             ),
             TextField(
-              decoration: InputDecoration(labelText: "Name (optional)"),
+              decoration: const InputDecoration(labelText: "Name (optional)"),
               onChanged: (value) {
                 name = value;
               },
             ),
             TextField(
-              decoration: InputDecoration(labelText: "Department (optional)"),
+              decoration:
+                  const InputDecoration(labelText: "Department (optional)"),
               onChanged: (value) {
                 department = value;
               },
             ),
             TextField(
-              decoration: InputDecoration(labelText: "Short Description"),
+              decoration: const InputDecoration(labelText: "Short Description"),
               onChanged: (value) {
                 shortDescription = value;
               },
             ),
             TextField(
-              decoration: InputDecoration(labelText: "Detailed Description"),
+              decoration:
+                  const InputDecoration(labelText: "Detailed Description"),
               maxLines: 5,
               onChanged: (value) {
                 detailedDescription = value;
               },
             ),
             TextField(
-              decoration: InputDecoration(labelText: "Complaint on Whom"),
+              decoration: const InputDecoration(labelText: "Complaint on Whom"),
               onChanged: (value) {
                 complaintOnWhom = value;
               },
             ),
             TextField(
-              decoration: InputDecoration(labelText: "Email (optional)"),
+              decoration: const InputDecoration(labelText: "Email (optional)"),
               onChanged: (value) {
                 email = value;
               },
@@ -422,7 +436,7 @@ class _ComplaintFormScreenState extends State<ComplaintFormScreen> {
               onPressed: () {
                 // Submit functionality
               },
-              child: Text('Submit'),
+              child: const Text('Submit'),
             )
           ],
         ),
