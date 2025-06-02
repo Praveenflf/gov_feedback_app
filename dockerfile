@@ -1,16 +1,18 @@
 #Dart image
-FROM dart:stable
+FROM fischerscode/flutter:stable as build
 
 # Resolve app dependencies.
 WORKDIR /app
 COPY pubspec.* ./
-RUN dart pub get
+RUN flutter pub get
+
+
 
 # Copy app source code & compile it.
 COPY . .
 
 #Compile application
-RUN dart compile exe binmain.dart -o bin/server
+# RUN flutter build web
 
 #Set the default command to run your Dart file
-CMD ["dart", "lib/main.dart"]
+# CMD ["dart", "lib/main.dart"]
