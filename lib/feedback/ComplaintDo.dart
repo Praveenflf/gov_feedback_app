@@ -7,6 +7,7 @@ class ComplaintDo {
   String complaintDetails;
   String? emailID;
   bool anonymous;
+  var phone;
 
   // Constructor with optional named parameters
   ComplaintDo({
@@ -15,6 +16,7 @@ class ComplaintDo {
     required this.complaintDetails,
     this.name,
     this.emailID,
+    this.phone,
     required this.anonymous,
   });
 

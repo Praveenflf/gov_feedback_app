@@ -33,7 +33,7 @@ class HappinessIndexScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Happiness Index'),
-        backgroundColor: Colors.green,
+        backgroundColor: Color.fromARGB(255, 194, 186, 246),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

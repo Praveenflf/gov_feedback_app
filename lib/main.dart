@@ -20,9 +20,6 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Office feedback and people Support System',
-        theme: ThemeData(
-          primarySwatch: Colors.green,
-        ),
         home: HomeScreen(),
       ),
     );

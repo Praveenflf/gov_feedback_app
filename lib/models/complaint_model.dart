@@ -7,6 +7,7 @@ class ComplaintModel {
       detailedDescription; // Optional detailed description of the complaint
   final String complaintOnWhom; // Person/department the complaint is against
   final String? email; // Optional email for the complainant
+  var phone; // optional phone for the complainant
 
   ComplaintModel({
     required this.complaintId, // Ensure complaintId is passed during initialization
@@ -16,5 +17,6 @@ class ComplaintModel {
     this.detailedDescription, // Optional
     required this.complaintOnWhom, // Mandatory
     this.email, // Optional
+    this.phone,  // Optional
   });
 }
