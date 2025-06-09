@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gov_feedback_app/utils/custom_footer.dart';
 import 'complaint_screen.dart';
 import 'home_screen.dart';
 import 'self_service_screen.dart';
@@ -14,7 +15,35 @@ class _RatingScreenState extends State<RatingScreen> {
   bool? _escalate;
   final TextEditingController _commentController = TextEditingController();
 
+  final String activePage = 'Feedback';
+
+  final List<String> _titles = [
+    'Home',
+    'Feedback',
+    'Self-Service',
+    'Raise Complaint'
+  ];
+
   void _submitFeedback() {
+    if (_rating == 0) {
+      // Show alert dialog asking to select rating
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text("Rating Required"),
+          content: Text("Please select the star before submitting."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("OK"),
+            ),
+          ],
+        ),
+      );
+      return; // Don't proceed further
+    }
+
+    // Proceed with submission if rating is selected
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -57,105 +86,6 @@ class _RatingScreenState extends State<RatingScreen> {
     );
   }
 
-  Widget _navLink(BuildContext context, String title, int index) {
-    final routes = [
-      () => Navigator.push(
-          context, MaterialPageRoute(builder: (_) => HomeScreen())),
-      () => {},
-      () => Navigator.push(
-          context, MaterialPageRoute(builder: (_) => SelfServiceScreen())),
-      () => Navigator.push(
-          context, MaterialPageRoute(builder: (_) => ComplaintScreen())),
-    ];
-    final isSelected = title == 'Feedback';
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: TextButton(
-        onPressed: routes[index],
-        style: TextButton.styleFrom(
-          backgroundColor: isSelected
-              ? Color.fromARGB(255, 204, 198, 246)
-              : Colors.transparent,
-        ),
-        child: Text(
-          title,
-          style: TextStyle(
-            color:
-                isSelected ? Color.fromARGB(255, 102, 78, 255) : Colors.black,
-            fontWeight: isSelected ? FontWeight.normal : FontWeight.normal,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFooter() {
-    return Container(
-      color: Colors.black87,
-      padding: EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Subscribe to our newsletter',
-              style: TextStyle(color: Colors.white, fontSize: 16)),
-          SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  style: TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.email, color: Colors.white),
-                    hintText: 'Input your email',
-                    hintStyle: TextStyle(color: Colors.white54),
-                    filled: true,
-                    fillColor: Colors.grey[800],
-                    border: InputBorder.none,
-                  ),
-                ),
-              ),
-              SizedBox(width: 10),
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                  shape: BeveledRectangleBorder(),
-                ),
-                child: Text('Subscribe', style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
-          SizedBox(height: 20),
-          Wrap(
-            spacing: 20,
-            alignment: WrapAlignment.center,
-            children: [
-              for (var label in [
-                'About us',
-                'Features',
-                'Help Center',
-                'Contact us',
-                'FAQs',
-                'Careers'
-              ])
-                TextButton(
-                  onPressed: () {},
-                  child: Text(label, style: TextStyle(color: Colors.white)),
-                ),
-            ],
-          ),
-          SizedBox(height: 20),
-          Text(
-            '© 2025 Brand, Inc. • Privacy • Terms • Sitemap',
-            style: TextStyle(color: Colors.white70, fontSize: 12),
-          )
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -171,10 +101,9 @@ class _RatingScreenState extends State<RatingScreen> {
                 style: TextStyle(
                     color: Colors.black, fontWeight: FontWeight.bold)),
             SizedBox(width: 32),
-            _navLink(context, 'Home', 0),
-            _navLink(context, 'Feedback', 1),
-            _navLink(context, 'Self-Service', 2),
-            _navLink(context, 'Raise Complaint', 3),
+            ...List.generate(_titles.length, (index) {
+              return NavLink(context, _titles[index], index, activePage);
+            }),
           ],
         ),
         actions: [
@@ -185,8 +114,10 @@ class _RatingScreenState extends State<RatingScreen> {
               icon: Icon(Icons.help_outline, color: Colors.white),
               label: Text('? Help', style: TextStyle(color: Colors.white)),
               style: TextButton.styleFrom(
-                backgroundColor: Colors.blue,
-                shape: BeveledRectangleBorder(),
+                backgroundColor: Color.fromARGB(255, 119, 102, 227),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
           ),
@@ -384,8 +315,10 @@ class _RatingScreenState extends State<RatingScreen> {
                             ),
                           ],
                         ),
-                  SizedBox(height: 32),
-                  _buildFooter(),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  Footer(),
                 ],
               ),
             ),

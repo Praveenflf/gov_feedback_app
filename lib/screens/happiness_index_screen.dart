@@ -36,7 +36,7 @@ class HappinessIndexScreen extends StatelessWidget {
         backgroundColor: Color.fromARGB(255, 194, 186, 246),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import '../screens/home_screen.dart';
+import '../screens/rating_screen.dart';
+import '../screens/self_service_screen.dart';
+import '../screens/complaint_screen.dart';
 
 void showHelpDialog(BuildContext context) {
   showDialog(
@@ -19,9 +23,8 @@ void showHelpDialog(BuildContext context) {
   );
 }
 
-/// A utility class for help-related functionality
+/// A utility class for help-related functionality Shows the help dialog specific to the rating screen
 class HelpUtil {
-  /// Shows the help dialog specific to the rating screen
   static void showGeneralHelp(BuildContext context) {
     showDialog(
       context: context,
@@ -42,4 +45,40 @@ class HelpUtil {
       ),
     );
   }
+}
+
+//Nav button logics
+Widget NavLink(
+    BuildContext context, String title, int index, String activePage) {
+  final routes = [
+    () => Navigator.push(
+        context, MaterialPageRoute(builder: (_) => HomeScreen())),
+    () => Navigator.push(
+        context, MaterialPageRoute(builder: (_) => RatingScreen())),
+    () => Navigator.push(
+        context, MaterialPageRoute(builder: (_) => SelfServiceScreen())),
+    () => Navigator.push(
+        context, MaterialPageRoute(builder: (_) => ComplaintScreen())),
+  ];
+
+  final isSelected = title == activePage;
+
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8),
+    child: TextButton(
+      onPressed: routes[index],
+      style: TextButton.styleFrom(
+        backgroundColor: isSelected
+            ? Color.fromARGB(255, 204, 198, 246)
+            : Colors.transparent,
+      ),
+      child: Text(
+        title,
+        style: TextStyle(
+          color: isSelected ? Color.fromARGB(255, 0, 0, 0) : Colors.black,
+          fontWeight: FontWeight.normal,
+        ),
+      ),
+    ),
+  );
 }

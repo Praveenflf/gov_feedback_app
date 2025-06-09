@@ -4,6 +4,7 @@ import 'self_service_screen.dart';
 import 'complaint_screen.dart';
 import 'happiness_index_screen.dart';
 import '../utils/help_utils.dart';
+import '../utils/custom_footer.dart';
 
 class HomeScreen extends StatelessWidget {
   final String activePage = 'Home';
@@ -35,7 +36,7 @@ class HomeScreen extends StatelessWidget {
             ),
             SizedBox(width: 32),
             ...List.generate(_titles.length, (index) {
-              return _navLink(context, _titles[index], index, activePage);
+              return NavLink(context, _titles[index], index, activePage);
             }),
           ],
         ),
@@ -68,11 +69,10 @@ class HomeScreen extends StatelessWidget {
                       Expanded(
                         flex: 3,
                         child: Align(
-                          alignment: Alignment.center,
+                          alignment: Alignment.topLeft,
                           child: _buildWelcomeContent(context),
                         ),
                       ),
-                      SizedBox(width: 20),
                       Expanded(
                         flex: 2,
                         child: HappinessIndexScreen(),
@@ -92,42 +92,7 @@ class HomeScreen extends StatelessWidget {
           );
         },
       ),
-      bottomNavigationBar: _buildFooter(),
-    );
-  }
-
-  Widget _navLink(
-      BuildContext context, String title, int index, String activePage) {
-    final routes = [
-      () {},
-      () => Navigator.push(
-          context, MaterialPageRoute(builder: (_) => RatingScreen())),
-      () => Navigator.push(
-          context, MaterialPageRoute(builder: (_) => SelfServiceScreen())),
-      () => Navigator.push(
-          context, MaterialPageRoute(builder: (_) => ComplaintScreen())),
-    ];
-
-    final isSelected = title == activePage;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: TextButton(
-        onPressed: routes[index],
-        style: TextButton.styleFrom(
-          backgroundColor: isSelected
-              ? Color.fromARGB(255, 204, 198, 246)
-              : Colors.transparent,
-        ),
-        child: Text(
-          title,
-          style: TextStyle(
-            color:
-                isSelected ? Color.fromARGB(255, 102, 78, 255) : Colors.black,
-            fontWeight: FontWeight.normal,
-          ),
-        ),
-      ),
+      bottomNavigationBar: Footer(),
     );
   }
 
@@ -135,7 +100,7 @@ class HomeScreen extends StatelessWidget {
     const buttonWidth = 340.0;
     const buttonHeight = 60.0;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Welcome! How may we assist\nyou today?',
@@ -176,7 +141,7 @@ class HomeScreen extends StatelessWidget {
           }
         },
         style: OutlinedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 102, 78, 255),
+          backgroundColor: Color.fromARGB(255, 186, 179, 231),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           alignment: Alignment.center,
           side: BorderSide.none,
@@ -186,79 +151,10 @@ class HomeScreen extends StatelessWidget {
         ),
         child: Text(
           title,
-          style: const TextStyle(color: Colors.white, fontSize: 19),
+          style: const TextStyle(
+              color: Color.fromARGB(255, 67, 7, 246), fontSize: 19),
         ),
       ),
-    );
-  }
-
-  Widget _buildFooter() {
-    return Container(
-      color: Colors.black87,
-      padding: EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Subscribe to our newsletter',
-              style: TextStyle(color: Colors.white, fontSize: 16)),
-          SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  style: TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.email, color: Colors.white),
-                    hintText: 'Input your email',
-                    hintStyle: TextStyle(color: Colors.white54),
-                    filled: true,
-                    fillColor: Colors.grey[800],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: 10),
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                ),
-                child: Text('Subscribe'),
-              ),
-            ],
-          ),
-          SizedBox(height: 20),
-          Wrap(
-            spacing: 20,
-            alignment: WrapAlignment.center,
-            children: [
-              _footerLink('About us'),
-              _footerLink('Features'),
-              _footerLink('Help Center'),
-              _footerLink('Contact us'),
-              _footerLink('FAQs'),
-              _footerLink('Careers'),
-            ],
-          ),
-          SizedBox(height: 20),
-          Divider(color: Colors.white24),
-          SizedBox(height: 10),
-          Text('© 2025 Brand, Inc. • Privacy • Terms • Sitemap',
-              style:
-                  TextStyle(color: const Color.fromARGB(137, 255, 255, 255))),
-        ],
-      ),
-    );
-  }
-
-  Widget _footerLink(String text) {
-    return TextButton(
-      onPressed: () {},
-      child: Text(text, style: TextStyle(color: Colors.white70)),
     );
   }
 }

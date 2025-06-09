@@ -1,19 +1,211 @@
 import 'package:flutter/material.dart';
+import 'package:gov_feedback_app/screens/home_screen.dart';
+import 'package:gov_feedback_app/screens/rating_screen.dart';
+import 'package:gov_feedback_app/screens/self_service_screen.dart';
+import 'package:gov_feedback_app/utils/custom_footer.dart';
+import 'package:gov_feedback_app/utils/help_utils.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ComplaintScreen extends StatefulWidget {
-  @override
   State<ComplaintScreen> createState() => _ComplaintScreenState();
 }
 
 class _ComplaintScreenState extends State<ComplaintScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  String? name, shortDesc, detailedDesc, department, complaintOnWhom;
-  String? phone, email, otp;
+  final TextEditingController _contactController = TextEditingController();
+  final TextEditingController _otpController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _complaintOnController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
 
-  void _sendOtp(String type) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('OTP sent to $type (mocked)')),
+  String? name, shortDesc, detailedDesc, department, complaintOnWhom;
+  String? contact;
+  String? otp;
+
+  bool otpSent = false;
+  bool otpVerified = false;
+  bool isVerifying = false;
+  String errorMessage = '';
+
+  String? selectedDepartment;
+
+  // Helper regex for validation
+  final RegExp _phoneRegex = RegExp(r'^\+91\d{10}$');
+  final RegExp _emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+  bool isValidPhone(String input) => RegExp(r'^\d{10}$').hasMatch(input);
+  bool isValidEmail(String input) =>
+      RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(input);
+
+  Future<void> _sendOtp() async {
+    final val = _contactController.text.trim();
+    String? formattedContact;
+
+    // Validate and format contact
+    if (_phoneRegex.hasMatch(val)) {
+      formattedContact = val;
+    } else if (RegExp(r'^\d{10}$').hasMatch(val)) {
+      // Add +91 prefix if just 10 digits entered
+      formattedContact = '+91$val';
+      _contactController.text = formattedContact;
+    } else if (_emailRegex.hasMatch(val)) {
+      formattedContact = val;
+    } else {
+      // Invalid format - show error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Enter a valid phone number or email')),
+      );
+      return;
+    }
+
+    final response = await http.post(
+      Uri.parse('http://localhost:3000/send-otp'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'phone': formattedContact,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        print("OTP sent successfully");
+        otpSent = true;
+        errorMessage = '';
+      });
+    } else {
+      setState(() => errorMessage = 'Failed to send OTP. Try again.');
+    }
+  }
+
+  Future<void> _verifyOtp() async {
+    final contact = _contactController.text.trim();
+    final otp = _otpController.text.trim();
+    final formattedContact = isValidPhone(contact) ? '+91$contact' : contact;
+
+    if (otp.isEmpty || otp.length != 6) {
+      setState(() => errorMessage = 'Enter valid 6-digit OTP');
+      return;
+    }
+
+    setState(() => isVerifying = true);
+
+    final response = await http.post(
+      Uri.parse('http://localhost:3000/verify-otp'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'phone': formattedContact, 'code': otp}),
+    );
+
+    setState(() => isVerifying = false);
+
+    if (response.statusCode == 200) {
+      final responseBody = jsonDecode(response.body);
+      if (responseBody['success'] == true) {
+        setState(() {
+          otpVerified = true;
+          errorMessage = 'OTP verified successfully';
+        });
+      } else {
+        setState(() {
+          otpVerified = false;
+          errorMessage = responseBody['message'] ?? 'Invalid OTP';
+        });
+      }
+    } else {
+      setState(
+          () => errorMessage = 'OTP verification failed. Please try again.');
+    }
+    print(errorMessage);
+  }
+
+  final String activePage = 'Raise Complaint';
+  final List<String> _titles = [
+    'Home',
+    'Feedback',
+    'Self-Service',
+    'Raise Complaint'
+  ];
+
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 1,
+        titleSpacing: 20,
+        title: Row(
+          children: [
+            Image.asset('images/logo.jpg', height: 32),
+            SizedBox(width: 8),
+            Text(
+              'Complaint Submission Form',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(width: 32),
+            ...List.generate(_titles.length, (index) {
+              return NavLink(context, _titles[index], index, activePage);
+            }),
+          ],
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: TextButton.icon(
+              onPressed: () => showHelpDialog(context),
+              icon: Icon(Icons.help_outline, color: Colors.white),
+              label: Text('? Help', style: TextStyle(color: Colors.white)),
+              style: TextButton.styleFrom(
+                backgroundColor: Color.fromARGB(255, 119, 102, 227),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth > 700) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        buildLeftColumn(),
+                        SizedBox(width: 40),
+                        buildRightColumn(),
+                      ],
+                    );
+                  } else {
+                    return Column(
+                      children: [
+                        buildLeftColumn(),
+                        SizedBox(height: 30),
+                        buildRightColumn(),
+                      ],
+                    );
+                  }
+                },
+              ),
+            ),
+            SizedBox(
+              height: 30,
+            ),
+            Footer(),
+          ],
+        ),
+      ),
     );
   }
 
@@ -22,19 +214,41 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildTextField('Name (optional)', onChanged: (val) => name = val),
+          _buildTextField(
+            'Name (optional)',
+            onChanged: (val) => name = val,
+            validator: null,
+          ),
           SizedBox(height: 20),
-          _buildTextField('Short Description',
-              onChanged: (val) => shortDesc = val),
+          _buildTextField(
+            'Short Description *',
+            onChanged: (val) => shortDesc = val,
+            validator: (val) {
+              if (val == null || val.trim().isEmpty) {
+                return 'Short Description is required';
+              }
+              return null;
+            },
+          ),
           SizedBox(height: 20),
-          _buildTextField('Detailed Description',
-              maxLines: 5, onChanged: (val) => detailedDesc = val),
+          _buildTextField(
+            'Detailed Description (optional)',
+            maxLines: 5,
+            onChanged: (val) => detailedDesc = val,
+            validator: null,
+          ),
           SizedBox(height: 20),
           _buildDropdownField(
-            label: 'Complaint on Whom',
+            label: 'Complaint on Whom *',
             value: complaintOnWhom,
-            items: ['Officer A', 'Clerk B', 'Others'],
+            items: ['Officer A', 'Clerk B', 'Others', 'N/A'],
             onChanged: (val) => setState(() => complaintOnWhom = val),
+            validator: (val) {
+              if (val == null || val.isEmpty) {
+                return 'Please select whom complaint is against';
+              }
+              return null;
+            },
           ),
         ],
       ),
@@ -47,31 +261,43 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildDropdownField(
-            label: 'Department',
+            label: 'Department *',
             value: department,
-            items: ['Water', 'Electricity', 'Sanitation', 'Other'],
+            items: ['Water', 'Electricity', 'Sanitation', 'Other', 'N/A'],
             onChanged: (val) => setState(() => department = val),
+            validator: (val) {
+              if (val == null || val.isEmpty) {
+                return 'Please select a department';
+              }
+              return null;
+            },
           ),
           SizedBox(height: 20),
           _buildOtpRow(
-            label: 'Phone Number (Optional)',
-            hint: 'Enter your phone',
-            onChanged: (val) => phone = val,
-            onSendOtp: () => _sendOtp('Phone'),
+            label: 'Contact (Phone or Email) (optional)',
+            controller: _contactController,
+            hint: 'Enter phone or email',
+            onSendOtp: _sendOtp,
           ),
-          SizedBox(height: 20),
-          _buildOtpRow(
-            label: 'Email ID (Optional)',
-            hint: 'Enter your email',
-            onChanged: (val) => email = val,
-            onSendOtp: () => _sendOtp('Email'),
-          ),
-          SizedBox(height: 20),
-          _buildTextField('Enter OTP', onChanged: (val) => otp = val),
+          if (otpSent) ...[
+            SizedBox(height: 20),
+            _buildOtpVerificationRow(
+              controller: _otpController,
+              onVerifyOtp: _verifyOtp,
+              otpVerified: otpVerified,
+            ),
+          ],
           SizedBox(height: 30),
           Center(
             child: ElevatedButton(
-              onPressed: _submitComplaint,
+              onPressed: otpVerified
+                  ? _submitComplaint
+                  : () {
+                      setState(() {
+                        errorMessage =
+                            "Please verify the OTP before submitting.";
+                      });
+                    },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF5865F2),
                 padding:
@@ -83,13 +309,23 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
               ),
             ),
           ),
+          if (errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                errorMessage!,
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
         ],
       ),
     );
   }
 
   Widget _buildTextField(String label,
-      {int maxLines = 1, required Function(String) onChanged}) {
+      {int maxLines = 1,
+      required Function(String) onChanged,
+      String? Function(String?)? validator}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -98,6 +334,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
         TextFormField(
           onChanged: onChanged,
           maxLines: maxLines,
+          validator: validator,
           decoration: InputDecoration(
             hintText: 'Enter $label'.replaceAll('(optional)', '').trim(),
             border: OutlineInputBorder(),
@@ -113,6 +350,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
     required String? value,
     required List<String> items,
     required void Function(String?) onChanged,
+    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,6 +360,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
         DropdownButtonFormField<String>(
           value: value,
           isExpanded: true,
+          validator: validator,
           items: items
               .map((e) => DropdownMenuItem(child: Text(e), value: e))
               .toList(),
@@ -138,8 +377,8 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
 
   Widget _buildOtpRow({
     required String label,
+    required TextEditingController controller,
     required String hint,
-    required Function(String) onChanged,
     required VoidCallback onSendOtp,
   }) {
     return Column(
@@ -151,7 +390,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
           children: [
             Expanded(
               child: TextFormField(
-                onChanged: onChanged,
+                controller: controller,
                 decoration: InputDecoration(
                   hintText: hint,
                   border: OutlineInputBorder(),
@@ -162,7 +401,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
             ),
             SizedBox(width: 10),
             ElevatedButton(
-              onPressed: onSendOtp,
+              onPressed: otpSent ? null : onSendOtp,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF5865F2),
               ),
@@ -177,50 +416,105 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
     );
   }
 
-  void _submitComplaint() {
-    // Add logic to submit
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Complaint Submitted (mocked)')),
+  Widget _buildOtpVerificationRow({
+    required TextEditingController controller,
+    required VoidCallback onVerifyOtp,
+    required bool otpVerified,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Enter OTP'),
+        SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: controller,
+                decoration: InputDecoration(
+                  hintText: 'Enter 6 digit OTP',
+                  border: OutlineInputBorder(),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  suffixIcon: otpVerified
+                      ? Icon(Icons.check_circle, color: Colors.green)
+                      : null,
+                ),
+              ),
+            ),
+            SizedBox(width: 10),
+            ElevatedButton(
+              onPressed: isVerifying || otpVerified ? null : onVerifyOtp,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF5865F2),
+              ),
+              child: isVerifying
+                  ? SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : Text(otpVerified ? 'Verified' : 'Verify'),
+            )
+          ],
+        ),
+      ],
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Complaint Submission Form"),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              if (constraints.maxWidth > 700) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    buildLeftColumn(),
-                    SizedBox(width: 40),
-                    buildRightColumn(),
-                  ],
-                );
-              } else {
-                return Column(
-                  children: [
-                    buildLeftColumn(),
-                    SizedBox(height: 30),
-                    buildRightColumn(),
-                  ],
-                );
-              }
-            },
-          ),
-        ),
-      ),
+  void _submitComplaint() {
+    if (!_formKey.currentState!.validate()) {
+      // Form fields validation failed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please complete the required fields')),
+      );
+      return;
+    }
+
+    if (!otpSent) {
+      setState(() => errorMessage = 'Please request OTP first.');
+      return;
+    }
+
+    // OTP verification
+    if (!otpVerified) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please verify OTP before submitting')),
+      );
+      return;
+    }
+
+    // Save form state (if needed)
+    _formKey.currentState!.save();
+
+    if (!otpVerified) {
+      return null;
+    }
+
+    final complaintData = {
+      'name': _nameController.text.trim(),
+      'contact': _contactController.text.trim(),
+      'complaintOn': _complaintOnController.text.trim(),
+      'description': _descriptionController.text.trim(),
+      'department': selectedDepartment,
+    };
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Complaint submitted successfully.')),
     );
+
+    // Reset
+    _formKey.currentState!.reset();
+    _contactController.clear();
+    _otpController.clear();
+    _descriptionController.clear();
+    _complaintOnController.clear;
+    complaintOnWhom = null;
+    department = null;
+    setState(() {
+      selectedDepartment = null;
+      otpSent = false;
+      otpVerified = false;
+      errorMessage = '';
+    });
   }
 }

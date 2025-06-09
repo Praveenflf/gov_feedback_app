@@ -1,10 +1,10 @@
-import 'dart:js_interop_unsafe';
-import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:gov_feedback_app/utils/custom_footer.dart';
+import '../screens/complaint_screen.dart';
+import '../screens/home_screen.dart';
+import '../screens/rating_screen.dart';
 import '../utils/help_utils.dart';
-import 'complaint_screen.dart';
-import 'home_screen.dart';
-import 'rating_screen.dart';
+import '../utils/otp_service.dart';
 
 class SelfServiceScreen extends StatefulWidget {
   @override
@@ -13,61 +13,17 @@ class SelfServiceScreen extends StatefulWidget {
 
 class _SelfServiceScreenState extends State<SelfServiceScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _otpController = TextEditingController();
-  final _emailPhoneController = TextEditingController();
-  final _nameController = TextEditingController();
-  final _deptController = TextEditingController();
 
-  bool isPhone = true;
+  final _nameController = TextEditingController();
+  final _contactController = TextEditingController();
+  final _otpController = TextEditingController();
+  String selectedDept = 'Revenue';
+
+  final _printDeptController = TextEditingController();
+  final _printFormNameController = TextEditingController();
+
   bool otpSent = false;
   bool otpVerified = false;
-  String generatedOTP = '';
-  String referenceId = '';
-  String selectedForm = 'Aadhar Card';
-
-  void _sendOTP() {
-    setState(() {
-      generatedOTP = (100000 + Random().nextInt(900000)).toString();
-      otpSent = true;
-      otpVerified = false;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text("OTP Sent: $generatedOTP (simulated)"),
-    ));
-  }
-
-  void _verifyOTP() {
-    if (_otpController.text == generatedOTP) {
-      setState(() {
-        otpVerified = true;
-        referenceId = 'REF${Random().nextInt(999999)}';
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content:
-            Text("Form submitted successfully! Reference ID: $referenceId"),
-      ));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Invalid OTP"),
-      ));
-    }
-  }
-
-  void _printForm() {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text("Printing $selectedForm... (simulated)"),
-    ));
-  }
-
-  void dispose() {
-    _otpController.dispose();
-    _emailPhoneController.dispose();
-    _nameController.dispose();
-    _deptController.dispose();
-    super.dispose();
-  }
 
   final String activePage = 'Self-Service';
 
@@ -78,41 +34,85 @@ class _SelfServiceScreenState extends State<SelfServiceScreen> {
     'Raise Complaint'
   ];
 
-  Widget _navLink(
-      BuildContext context, String title, int index, String activePage) {
-    final routes = [
-      () => Navigator.push(
-          context, MaterialPageRoute(builder: (_) => HomeScreen())),
-      () => Navigator.push(
-          context, MaterialPageRoute(builder: (_) => RatingScreen())),
-      () {},
-      () => Navigator.push(
-          context, MaterialPageRoute(builder: (_) => ComplaintScreen())),
-    ];
+  final departmentOptions = ['Revenue', 'Water', 'Electricity', 'Birth/Death'];
 
-    final isSelected = title == activePage;
+  final Map<String, List<String>> deptForms = {
+    'Revenue': ['Patta Transfer Form', 'Tax Payment Form'],
+    'Water': ['Water Connection Form', 'Usage Complaint Form'],
+    'Electricity': ['New Connection Form', 'Complaint Form'],
+    'Birth/Death': ['Birth Certificate Form', 'Death Certificate Form'],
+  };
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: TextButton(
-        onPressed: routes[index],
-        style: TextButton.styleFrom(
-          backgroundColor: isSelected
-              ? Color.fromARGB(255, 204, 198, 246)
-              : Colors.transparent,
-        ),
-        child: Text(
-          title,
-          style: TextStyle(
-            color:
-                isSelected ? Color.fromARGB(255, 102, 78, 255) : Colors.black,
-            fontWeight: FontWeight.normal,
-          ),
-        ),
-      ),
+  String normalizeContact(String input) {
+    input = input.trim();
+    final phoneRegex = RegExp(r'^\d{10}$');
+    if (phoneRegex.hasMatch(input)) {
+      return '+91$input';
+    }
+    return input;
+  }
+
+  void _sendOTP() async {
+    if (_formKey.currentState!.validate()) {
+      final normalizedContact = normalizeContact(_contactController.text);
+      bool success = await OtpService.sendOtp(normalizedContact);
+      if (success) {
+        setState(() {
+          otpSent = true;
+          otpVerified = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("OTP sent to $normalizedContact")),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to send OTP.")),
+        );
+      }
+    }
+  }
+
+  void _verifyOTPAndSendForms() async {
+    final normalizedContact = normalizeContact(_contactController.text);
+    bool success = await OtpService.verifyOtp(
+      normalizedContact,
+      _otpController.text.trim(),
+    );
+
+    if (success) {
+      setState(() {
+        otpVerified = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("OTP verified. Form link sent!")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Invalid OTP. Please try again.")),
+      );
+    }
+  }
+
+  void _printForm() {
+    print(
+        "Printing: ${_printFormNameController.text} from ${_printDeptController.text}");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Printing ${_printFormNameController.text}...")),
     );
   }
 
+  String? _validateContact(String? value) {
+    if (value == null || value.isEmpty) return 'Enter contact info';
+    final phoneRegex = RegExp(r'^\d{10}$');
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+
+    if (!phoneRegex.hasMatch(value) && !emailRegex.hasMatch(value)) {
+      return 'Enter valid Email or 10-digit Phone';
+    }
+    return null;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -132,7 +132,7 @@ class _SelfServiceScreenState extends State<SelfServiceScreen> {
             ),
             SizedBox(width: 32),
             ...List.generate(_titles.length, (index) {
-              return _navLink(context, _titles[index], index, activePage);
+              return NavLink(context, _titles[index], index, activePage);
             }),
           ],
         ),
@@ -155,245 +155,148 @@ class _SelfServiceScreenState extends State<SelfServiceScreen> {
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title
-            Text(
-              "Self Service Portal",
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            SizedBox(height: 30),
-
-            // Submit Form Section
-            Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Name (required)"),
-                  SizedBox(height: 5),
-                  TextFormField(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Get Forms Online",
+                  style: Theme.of(context).textTheme.titleLarge),
+              SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 300),
+                  child: TextFormField(
                     controller: _nameController,
-                    decoration: InputDecoration(
-                      hintText: "Enter your Name",
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (val) => val!.isEmpty ? "Enter your name" : null,
-                  ),
-                  SizedBox(height: 20),
-                  Text("Email ID (optional)"),
-                  SizedBox(height: 5),
-                  TextFormField(
-                    controller: _emailPhoneController,
-                    keyboardType: isPhone
-                        ? TextInputType.phone
-                        : TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      hintText: isPhone
-                          ? "Enter your Phone Number"
-                          : "Enter your Email ID",
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(isPhone ? Icons.phone : Icons.email),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Text("Department (required)"),
-                  SizedBox(height: 5),
-                  TextFormField(
-                    controller: _deptController,
-                    decoration: InputDecoration(
-                      hintText: "Select your Department",
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: InputDecoration(labelText: "Name"),
                     validator: (val) =>
-                        val!.isEmpty ? "Enter your department" : null,
+                        val == null || val.isEmpty ? 'Enter your name' : null,
                   ),
-                  SizedBox(height: 20),
-                  Text("Description"),
-                  SizedBox(height: 5),
-                  TextFormField(
-                    maxLines: 5,
-                    decoration: InputDecoration(
-                      hintText: "Enter your Description",
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(isPhone ? "Phone Number" : "Email Address"),
-                      Switch(
-                        value: isPhone,
-                        onChanged: (val) {
-                          setState(() => isPhone = val);
-                        },
-                      ),
-                    ],
-                  ),
-                  if (!otpSent)
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) _sendOTP();
-                      },
-                      child: Text("Submit"),
-                    ),
-                  if (otpSent && !otpVerified) ...[
-                    SizedBox(height: 10),
-                    TextFormField(
-                      controller: _otpController,
+                ),
+              ),
+              SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _contactController,
                       decoration: InputDecoration(
-                        labelText: "Enter OTP",
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.number,
+                          labelText: "Email ID or Phone Number"),
+                      validator: _validateContact,
                     ),
-                    SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: _verifyOTP,
-                      child: Text("Verify OTP & Confirm"),
+                  ),
+                  SizedBox(width: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) _sendOTP();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF5865F2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 14),
                     ),
-                  ],
-                  if (otpVerified)
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        "✅ Submitted! Reference ID: $referenceId",
-                        style: TextStyle(
-                            color: Colors.green, fontWeight: FontWeight.bold),
-                      ),
+                    child: Text(
+                      "Send OTP",
+                      style: TextStyle(color: Colors.white),
                     ),
+                  ),
                 ],
               ),
-            ),
-
-            SizedBox(height: 40),
-            Divider(thickness: 1),
-            SizedBox(height: 20),
-
-            // Print Forms Section
-            Text(
-              "Print Forms",
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            SizedBox(height: 20),
-
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: selectedForm,
-                    items: [
-                      'Aadhar Card',
-                      'Birth Certificate',
-                      'Caste Certificate',
-                      'Income Certificate',
-                    ]
-                        .map((form) => DropdownMenuItem(
-                              value: form,
-                              child: Text(form),
-                            ))
-                        .toList(),
-                    onChanged: (val) => setState(() => selectedForm = val!),
-                    decoration: InputDecoration(
-                      hintText: "Select Department",
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: TextFormField(
-                    decoration: InputDecoration(
-                      hintText: "Form name",
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
+              SizedBox(height: 30),
+              DropdownButtonFormField<String>(
+                value: selectedDept,
+                decoration: InputDecoration(labelText: "Department"),
+                items: departmentOptions.map((dept) {
+                  return DropdownMenuItem(
+                    value: dept,
+                    child: Text(dept),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  setState(() => selectedDept = val!);
+                },
+              ),
+              SizedBox(height: 10),
+              if (otpSent && !otpVerified) ...[
+                TextFormField(
+                  controller: _otpController,
+                  decoration: InputDecoration(labelText: "Enter OTP"),
+                  keyboardType: TextInputType.number,
                 ),
               ],
-            ),
-            SizedBox(height: 15),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: ElevatedButton(
-                onPressed: _printForm,
-                child: Text("Print"),
-              ),
-            ),
-
-            SizedBox(height: 40),
-
-            // Footer Section
-            _buildFooter(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFooter() {
-    return Container(
-      color: Colors.black87,
-      padding: EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Subscribe to our newsletter',
-              style: TextStyle(color: Colors.white, fontSize: 16)),
-          SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  style: TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.email, color: Colors.white),
-                    hintText: 'Input your email',
-                    hintStyle: TextStyle(color: Colors.white54),
-                    filled: true,
-                    fillColor: Colors.grey[800],
-                    border: InputBorder.none,
-                  ),
-                ),
-              ),
-              SizedBox(width: 10),
               ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                  shape: BeveledRectangleBorder(),
-                ),
-                child: Text('Subscribe', style: TextStyle(color: Colors.white)),
+                onPressed: _verifyOTPAndSendForms,
+                child: Text("Verify OTP & Get Forms"),
               ),
-            ],
-          ),
-          SizedBox(height: 20),
-          Wrap(
-            spacing: 20,
-            alignment: WrapAlignment.center,
-            children: [
-              for (var label in [
-                'About us',
-                'Features',
-                'Help Center',
-                'Contact us',
-                'FAQs',
-                'Careers'
-              ])
-                TextButton(
-                  onPressed: () {},
-                  child: Text(label, style: TextStyle(color: Colors.white)),
+              if (otpVerified)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text("Form links sent successfully."),
                 ),
+              Divider(height: 40),
+              Text("Print Forms",
+                  style: Theme.of(context).textTheme.titleLarge),
+              SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                value: _printDeptController.text.isEmpty
+                    ? departmentOptions.first
+                    : _printDeptController.text,
+                decoration: InputDecoration(labelText: "Select Department"),
+                items: departmentOptions.map((dept) {
+                  return DropdownMenuItem(value: dept, child: Text(dept));
+                }).toList(),
+                onChanged: (val) {
+                  _printDeptController.text = val!;
+                  _printFormNameController.text = '';
+                  setState(() {});
+                },
+              ),
+              SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                value: _printFormNameController.text.isEmpty
+                    ? null
+                    : _printFormNameController.text,
+                decoration: InputDecoration(labelText: "Select Form Name"),
+                items: (_printDeptController.text.isNotEmpty
+                        ? deptForms[_printDeptController.text] ?? []
+                        : [])
+                    .map<DropdownMenuItem<String>>((form) {
+                  return DropdownMenuItem<String>(
+                    value: form,
+                    child: Text(form),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  _printFormNameController.text = val!;
+                  setState(() {});
+                },
+              ),
+              SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: () {
+                  if (_printDeptController.text.isNotEmpty &&
+                      _printFormNameController.text.isNotEmpty) {
+                    _printForm();
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF5865F2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                ),
+                child: Text(
+                  "Print Form",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              SizedBox(
+                height: 30,
+              ),
+              Footer(),
             ],
           ),
-          SizedBox(height: 20),
-          Text(
-            '© 2025 Brand, Inc. • Privacy • Terms • Sitemap',
-            style: TextStyle(color: Colors.white70, fontSize: 12),
-          )
-        ],
+        ),
       ),
     );
   }
