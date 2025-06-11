@@ -8,3 +8,4 @@ build/flutter_assets/NOTICES
 js/package-lock.json
 js/package.json
 .flutter-plugins-dependencies
+.env
