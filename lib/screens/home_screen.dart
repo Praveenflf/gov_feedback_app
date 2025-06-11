@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'rating_screen.dart';
 import 'self_service_screen.dart';
 import 'complaint_screen.dart';
-import 'happiness_index_screen.dart';
 import '../utils/help_utils.dart';
 import '../utils/custom_footer.dart';
+import '../screens/happiness_index_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final String activePage = 'Home';
@@ -19,81 +19,88 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        titleSpacing: 20,
-        title: Row(
-          children: [
-            Image.asset('images/logo.jpg', height: 32),
-            SizedBox(width: 8),
-            Text(
-              'Feedback Hub',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 1,
+          titleSpacing: 20,
+          title: Row(
+            children: [
+              Image.asset('images/logo.jpg', height: 32),
+              SizedBox(width: 8),
+              Text(
+                'Feedback Hub',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            SizedBox(width: 32),
-            ...List.generate(_titles.length, (index) {
-              return NavLink(context, _titles[index], index, activePage);
-            }),
-          ],
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: TextButton.icon(
-              onPressed: () => showHelpDialog(context),
-              icon: Icon(Icons.help_outline, color: Colors.white),
-              label: Text('? Help', style: TextStyle(color: Colors.white)),
-              style: TextButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 119, 102, 227),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+              SizedBox(width: 32),
+              ...List.generate(_titles.length, (index) {
+                return NavLink(context, _titles[index], index, activePage);
+              }),
+            ],
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: TextButton.icon(
+                onPressed: () => showHelpDialog(context),
+                icon: Icon(Icons.help_outline, color: Colors.white),
+                label: Text('? Help', style: TextStyle(color: Colors.white)),
+                style: TextButton.styleFrom(
+                  backgroundColor: Color.fromARGB(255, 119, 102, 227),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          bool isWide = constraints.maxWidth > 600;
-          return Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: isWide
-                ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Align(
-                          alignment: Alignment.topLeft,
-                          child: _buildWelcomeContent(context),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: HappinessIndexScreen(),
-                      ),
-                    ],
-                  )
-                : SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        _buildWelcomeContent(context),
-                        SizedBox(height: 20),
-                        HappinessIndexScreen(),
-                      ],
-                    ),
-                  ),
-          );
-        },
-      ),
-      bottomNavigationBar: Footer(),
-    );
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    bool isWide = constraints.maxWidth > 600;
+                    return isWide
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: _buildWelcomeContent(context),
+                                ),
+                              ),
+                              Expanded(
+                                  flex: 3,
+                                  child: Align(
+                                      alignment: Alignment.topRight,
+                                      child: BuildInfoContent())),
+                            ],
+                          )
+                        : SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                _buildWelcomeContent(context),
+                                SizedBox(height: 20),
+                                BuildInfoContent(),
+                                SizedBox(height: 30),
+                              ],
+                            ),
+                          );
+                  },
+                ),
+              ),
+            ),
+            Footer(),
+          ],
+        ));
   }
 
   Widget _buildWelcomeContent(BuildContext context) {
@@ -107,7 +114,7 @@ class HomeScreen extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: 20),
+        SizedBox(height: 40),
         _buildNavButton(context, 'Feedback', 1, buttonWidth, buttonHeight),
         SizedBox(height: 20),
         _buildNavButton(context, 'Self-Service', 2, buttonWidth, buttonHeight),
@@ -141,7 +148,7 @@ class HomeScreen extends StatelessWidget {
           }
         },
         style: OutlinedButton.styleFrom(
-          backgroundColor: Color.fromARGB(255, 186, 179, 231),
+          backgroundColor: Color.fromARGB(255, 211, 207, 239),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           alignment: Alignment.center,
           side: BorderSide.none,
@@ -152,7 +159,7 @@ class HomeScreen extends StatelessWidget {
         child: Text(
           title,
           style: const TextStyle(
-              color: Color.fromARGB(255, 67, 7, 246), fontSize: 19),
+              color: Color.fromARGB(255, 102, 59, 232), fontSize: 19),
         ),
       ),
     );

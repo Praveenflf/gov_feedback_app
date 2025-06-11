@@ -4,12 +4,22 @@ import 'package:provider/provider.dart';
 import 'notifiers/feedback_notifier.dart';
 import 'notifiers/complaint_notifier.dart';
 import 'screens/home_screen.dart';
+import 'screens/happiness_index_screen.dart';
+import 'utils/fetchData.dart';
 
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -19,7 +29,8 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Office feedback and people Support System',
+        title: 'Feedback System',
+        theme: ThemeData(useMaterial3: true),
         home: HomeScreen(),
       ),
     );

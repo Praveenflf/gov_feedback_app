@@ -7,8 +7,9 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const authToken = 'test34';
-const verifySid = 'tset364'; 
+const accountSid = 'ACa5777c0cb15c82a0c955f10457a4f578';
+const authToken = 'b3bfbbe815b9834b54704b226cc35626';
+const verifySid = 'VA2e63fd2d8e5627a1afbbdca92730c344'; 
 
 const client = twilio(accountSid, authToken);
 

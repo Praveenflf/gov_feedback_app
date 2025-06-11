@@ -16,3 +16,6 @@ COPY . .
 
 #Set the default command to run your Dart file
 # CMD ["dart", "lib/main.dart"]
+
+RUN npm install
+CMD ["node", "server.js"]

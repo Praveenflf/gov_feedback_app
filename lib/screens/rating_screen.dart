@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:gov_feedback_app/utils/custom_footer.dart';
+import '../utils/custom_footer.dart';
 import 'complaint_screen.dart';
 import 'home_screen.dart';
 import 'self_service_screen.dart';
 import '../utils/help_utils.dart';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RatingScreen extends StatefulWidget {
   @override
@@ -12,7 +14,7 @@ class RatingScreen extends StatefulWidget {
 
 class _RatingScreenState extends State<RatingScreen> {
   int _rating = 0;
-  bool? _escalate;
+  bool? _escalate = null;
   final TextEditingController _commentController = TextEditingController();
 
   final String activePage = 'Feedback';
@@ -43,7 +45,66 @@ class _RatingScreenState extends State<RatingScreen> {
       return; // Don't proceed further
     }
 
-    // Proceed with submission if rating is selected
+    //Request to provide comments
+    if (_rating <= 2) {
+      // Show alert dialog
+      if (_escalate == false) {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: Text("Escalation Required due to low rating"),
+            content:
+                Text("Please select Yes to escalation to complete submission"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("OK"),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      if (_escalate == null) {
+        // Show alert dialog asking to answer escalation
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            content:
+                Text("Please answer 'Do you want to escalte this center?'"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("OK"),
+              ),
+            ],
+          ),
+        );
+        return; // Don't proceed further
+      }
+
+      // Show alert dialog
+      if (_commentController.text.isEmpty) {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: Text("Comment Required"),
+            content: Text("Please provide comment to complete submission"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("OK"),
+              ),
+            ],
+          ),
+        );
+        return;
+      } // Don't proceed further
+    }
+
+    // Proceed with submission
+    _saveFeedbackToFirestore(); //save data to db
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -64,6 +125,20 @@ class _RatingScreenState extends State<RatingScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _saveFeedbackToFirestore() async {
+    try {
+      print("Saving details to firebase");
+      await FirebaseFirestore.instance.collection('Ratings').add({
+        'Rating': _rating,
+        'Comment': _commentController.text.trim(),
+        'escalate': _escalate,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print("Error saving feedback: $e");
+    }
   }
 
   Widget _buildStarRating() {
@@ -154,7 +229,7 @@ class _RatingScreenState extends State<RatingScreen> {
                                     controller: _commentController,
                                     maxLines: 4,
                                     decoration: InputDecoration(
-                                      hintText: 'Optional comment',
+                                      hintText: 'Comment',
                                       border: OutlineInputBorder(),
                                     ),
                                   ),

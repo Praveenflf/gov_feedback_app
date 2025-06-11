@@ -34,13 +34,13 @@ class _SelfServiceScreenState extends State<SelfServiceScreen> {
     'Raise Complaint'
   ];
 
-  final departmentOptions = ['Revenue', 'Water', 'Electricity', 'Birth/Death'];
+  final departmentOptions = ['Revenue', 'Water', 'Electricity', 'Sanitation'];
 
   final Map<String, List<String>> deptForms = {
     'Revenue': ['Patta Transfer Form', 'Tax Payment Form'],
     'Water': ['Water Connection Form', 'Usage Complaint Form'],
     'Electricity': ['New Connection Form', 'Complaint Form'],
-    'Birth/Death': ['Birth Certificate Form', 'Death Certificate Form'],
+    'Sanitation': ['Birth Certificate Form', 'Death Certificate Form'],
   };
 
   String normalizeContact(String input) {

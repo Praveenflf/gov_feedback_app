@@ -1,6 +1,6 @@
 .dart_tool/
 build/
-.fluter-plugins
+.flutter-plugins
 .git/
 js/node_modules/
 dy
