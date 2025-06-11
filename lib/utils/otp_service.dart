@@ -40,7 +40,12 @@ class OtpService {
       );
 
       if (response.statusCode == 200) {
-        return true;
+        final responseBody = jsonDecode(response.body);
+        if (responseBody['success'] == true) {
+          return true;
+        } else {
+          return false;
+        }
       } else {
         print("Verify OTP failed [${response.statusCode}]: ${response.body}");
         return false;

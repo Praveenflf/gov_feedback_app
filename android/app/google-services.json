@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "109352699072",
+    "project_id": "feedbackhub-bd790",
+    "storage_bucket": "feedbackhub-bd790.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:109352699072:android:20d5c5cb1a87c7e3905925",
+        "android_client_info": {
+          "package_name": "com.example.gov_feedback_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtVQow65DEgxWjg445KC4XNDUppOFLqwc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
