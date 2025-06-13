@@ -19,7 +19,7 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Build Docker image
-      run: docker build -t praveenfr/feedbackApp:latest .
+      run: docker build -t praveenfr/feedbackapptest:latest .
 
     - name: Push Docker image to Docker Hub
-      run: docker push praveenfr/feedbackApp:latest
+      run: docker push praveenfr/feedbackapptest:latest
