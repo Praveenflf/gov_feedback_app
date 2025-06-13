@@ -9,8 +9,8 @@ COPY . .
 # --------- Stage 2: Node.js runtime with Dart ---------
 FROM node:18-alpine
 
-# Install Dart manually (because alpine doesn't have Dart preinstalled)
-RUN apk add --no-cache bash curl && \
+# Install Dart SDK
+RUN apk add --no-cache bash curl unzip && \
     curl -o dart-sdk.zip https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip && \
     unzip dart-sdk.zip && \
     mv dart-sdk /usr/lib/dart && \
@@ -19,16 +19,22 @@ RUN apk add --no-cache bash curl && \
 
 WORKDIR /app
 
-# Install Node dependencies
-COPY js/package*.json ./js/
-RUN cd js && npm install
-
-# Copy app source
+# ✅ Fix: Copy the entire js folder *before* installing
 COPY js ./js
+
+# ✅ Install dependencies inside js folder
+WORKDIR /app/js
+RUN npm install
+
+# ✅ Go back to /app for rest of code
+WORKDIR /app
+
+# Copy Flutter app code & pubspec
 COPY lib ./lib
 COPY pubspec.* ./
 
 EXPOSE 3000
+EXPOSE 8080
 
-# Run both Dart and Node.js processes in parallel
-CMD sh -c "dart lib/main.dart & node js/server.js"
+# ✅ JSON format for CMD recommended
+CMD ["sh", "-c", "dart lib/main.dart & node js/server.js"]
