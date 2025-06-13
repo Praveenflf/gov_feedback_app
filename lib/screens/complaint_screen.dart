@@ -453,7 +453,10 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2))
-                  : Text(otpVerified ? 'Verified' : 'Verify'),
+                  : Text(
+                      otpVerified ? 'Verified' : 'Verify',
+                      style: TextStyle(color: Colors.white),
+                    ),
             )
           ],
         ),
