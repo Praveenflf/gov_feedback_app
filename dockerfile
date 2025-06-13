@@ -8,18 +8,25 @@ COPY . .
 # Uncomment if you're building a Flutter web app
 # RUN flutter build web
 
-#Final image with Flutter SDK
-FROM fischerscode/flutter:stable
+#Dart Runtime Image
+FROM debian:bullseye-slim
+
+# Install Dart SDK
+RUN apt-get update && apt-get install -y curl unzip xz-utils && \
+    curl -O https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip && \
+    unzip dartsdk-linux-x64-release.zip -d /usr/lib/ && \
+    ln -s /usr/lib/dart-sdk/bin/dart /usr/bin/dart && \
+    rm dartsdk-linux-x64-release.zip && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+ENV PATH="/usr/lib/dart-sdk/bin:$PATH"
 
 WORKDIR /app
 
-# Copy built app from previous stage (useful for web; ignored otherwise)
-COPY --from=build /app ./
+# Copy Dart source code
+COPY lib ./lib
+COPY pubspec.* ./
 
-# ✅ Install any OS dependencies (if needed)
-RUN apt-get update && apt-get install -y curl unzip
-
-# ✅ Install Dart dependencies (this works because Flutter SDK is present)
 RUN flutter pub get
 
 EXPOSE 8080
