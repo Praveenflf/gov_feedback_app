@@ -66,7 +66,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'feedbackhub-bd790.firebasestorage.app',
     iosBundleId: 'com.example.govFeedbackApp',
   );
-
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyBT0NiObSDKSs8lzS4A0mH07g-64T128_U',
     appId: '1:109352699072:web:6d23e697020f59c3905925',
