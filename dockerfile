@@ -2,7 +2,7 @@
 FROM fischerscode/flutter:stable as build
 
 # Resolve app dependencies.
-WORKDIR /app
+WORKDIR /lib
 COPY pubspec.* ./
 RUN flutter pub get
 
