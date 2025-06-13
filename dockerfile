@@ -6,16 +6,18 @@ COPY pubspec.* ./
 RUN flutter pub get
 COPY . .
 
-# --------- Stage 2: Node.js runtime with Dart ---------
-FROM node:18-alpine
+# --------- Stage 2: Node.js + Dart runtime (Debian-based, stable) ---------
+FROM node:18-bullseye
 
-# Install Dart SDK
-RUN apk add --no-cache bash curl unzip && \
-    curl -o dart-sdk.zip https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip && \
-    unzip dart-sdk.zip && \
-    mv dart-sdk /usr/lib/dart && \
-    ln -s /usr/lib/dart/bin/dart /usr/bin/dart && \
-    rm dart-sdk.zip
+# ✅ Install Dart SDK (official Debian package, better than zip in Alpine)
+RUN apt-get update && \
+    apt-get install -y apt-transport-https curl gnupg unzip && \
+    curl -fsSL https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor | tee /usr/share/keyrings/dart-archive.gpg > /dev/null && \
+    curl -fsSL https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list | tee /etc/apt/sources.list.d/dart_stable.list && \
+    apt-get update && apt-get install -y dart && \
+    apt-get clean
+
+ENV PATH="/usr/lib/dart/bin:$PATH"
 
 WORKDIR /app
 
