@@ -27,7 +27,7 @@ WORKDIR /app
 COPY lib ./lib
 COPY pubspec.* ./
 
-RUN flutter pub get
+# RUN flutter pub get
 
 EXPOSE 8080
 
