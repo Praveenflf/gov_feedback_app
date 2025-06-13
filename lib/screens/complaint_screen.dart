@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:gov_feedback_app/screens/home_screen.dart';
 import 'package:gov_feedback_app/screens/rating_screen.dart';
 import 'package:gov_feedback_app/screens/self_service_screen.dart';
+import 'package:gov_feedback_app/utils/ComplaintIdGenerator.dart';
 import 'package:gov_feedback_app/utils/custom_footer.dart';
 import 'package:gov_feedback_app/utils/help_utils.dart';
 import 'package:http/http.dart' as http;
@@ -18,6 +20,8 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
   final TextEditingController _otpController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _complaintOnController = TextEditingController();
+  final TextEditingController _shortDescriptionController =
+      TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
   String? name, shortDesc, detailedDesc, department, complaintOnWhom;
@@ -215,12 +219,14 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTextField(
+            _nameController,
             'Name (optional)',
             onChanged: (val) => name = val,
             validator: null,
           ),
           SizedBox(height: 20),
           _buildTextField(
+            _shortDescriptionController,
             'Short Description *',
             onChanged: (val) => shortDesc = val,
             validator: (val) {
@@ -232,6 +238,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
           ),
           SizedBox(height: 20),
           _buildTextField(
+            _descriptionController,
             'Detailed Description (optional)',
             maxLines: 5,
             onChanged: (val) => detailedDesc = val,
@@ -242,9 +249,14 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
             label: 'Complaint on Whom *',
             value: complaintOnWhom,
             items: ['Officer A', 'Clerk B', 'Others', 'N/A'],
-            onChanged: (val) => setState(() => complaintOnWhom = val),
-            validator: (val) {
-              if (val == null || val.isEmpty) {
+            onChanged: (val1) {
+              setState(() {
+                complaintOnWhom = val1;
+                print('Selected: $complaintOnWhom');
+              });
+            },
+            validator: (val1) {
+              if (val1 == null || val1.isEmpty) {
                 return 'Please select whom complaint is against';
               }
               return null;
@@ -322,7 +334,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
     );
   }
 
-  Widget _buildTextField(String label,
+  Widget _buildTextField(TextEditingController Textcontroller, String label,
       {int maxLines = 1,
       required Function(String) onChanged,
       String? Function(String?)? validator}) {
@@ -332,6 +344,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
         Text(label),
         SizedBox(height: 8),
         TextFormField(
+          controller: Textcontroller,
           onChanged: onChanged,
           maxLines: maxLines,
           validator: validator,
@@ -490,13 +503,12 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
       return null;
     }
 
-    final complaintData = {
-      'name': _nameController.text.trim(),
-      'contact': _contactController.text.trim(),
-      'complaintOn': _complaintOnController.text.trim(),
-      'description': _descriptionController.text.trim(),
-      'department': selectedDepartment,
-    };
+    name = _nameController.text.trim();
+    contact = _contactController.text.trim();
+    shortDesc = _shortDescriptionController.text.trim();
+    detailedDesc = _descriptionController.text.trim();
+
+    _saveComplaintToFireStore(); //save details to DB
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Complaint submitted successfully.')),
@@ -516,5 +528,27 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
       otpVerified = false;
       errorMessage = '';
     });
+  }
+
+  Future<void> _saveComplaintToFireStore() async {
+    try {
+      String complID = await getNextComplaintIdFromFirestore();
+      print("Saving complaint date to DB");
+      await FirebaseFirestore.instance
+          .collection("Complaints")
+          .doc(complID)
+          .set({
+        'Contact': contact,
+        'Defendant': complaintOnWhom,
+        'DepartmentID': department,
+        'Name': name,
+        'createdAt': FieldValue.serverTimestamp(),
+        'detailed_Desc': detailedDesc,
+        'short_Desc': shortDesc,
+        'status': 'New'
+      });
+    } catch (e) {
+      print("Error saving complaint: $e");
+    }
   }
 }

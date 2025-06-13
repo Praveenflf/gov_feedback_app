@@ -1,13 +1,29 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ComplaintIdGenerator {
-  static const String _key = 'last_complaint_id';
+Future<String> getNextComplaintIdFromFirestore() async {
+  try {
+    // Query the Complaints collection, order by 'createdAt' descending, get only the latest
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('Complaints')
+        .orderBy('createdAt', descending: true)
+        .limit(1)
+        .get();
 
-  static Future<String> getNextComplaintId() async {
-    final prefs = await SharedPreferences.getInstance();
-    int lastId = prefs.getInt(_key) ?? 0;
-    lastId++;
-    await prefs.setInt(_key, lastId);
-    return 'CD${lastId.toString().padLeft(5, '0')}';
+    if (snapshot.docs.isEmpty) {
+      return 'complaint-01'; // If no complaints yet, start from CD00001
+    }
+
+    // Extract the latest complaint ID
+    String lastId = snapshot.docs.first['Document ID'] ?? 'complaint-00';
+
+    // Extract numeric part
+    int numericPart = int.tryParse(lastId.replaceAll('complaint-', '')) ?? 0;
+    numericPart++;
+
+    // Generate next ID
+    return 'complaint-${numericPart.toString().padLeft(5, '0')}';
+  } catch (e) {
+    print("Error fetching last complaint ID: $e");
+    return 'complaint-01'; // fallback
   }
 }

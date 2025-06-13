@@ -40,3 +40,5 @@ pubspec.lock
 .dart_tool/
 .fluterr-plugins
 .fluterr-plugins-dependencies
+pubspec.lock
+.env
