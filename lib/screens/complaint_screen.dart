@@ -7,6 +7,7 @@ import 'package:gov_feedback_app/utils/ComplaintIdGenerator.dart';
 import 'package:gov_feedback_app/utils/custom_footer.dart';
 import 'package:gov_feedback_app/utils/help_utils.dart';
 import 'package:http/http.dart' as http;
+import '../utils/otp_service.dart';
 import 'dart:convert';
 
 class ComplaintScreen extends StatefulWidget {
@@ -63,17 +64,9 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
       return;
     }
 
-    final response = await http.post(
-      Uri.parse('http://localhost:3000/send-otp'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'phone': formattedContact,
-      }),
-    );
+    bool success = await OtpService.sendOtp(formattedContact);
 
-    if (response.statusCode == 200) {
+    if (success) {
       setState(() {
         print("OTP sent successfully");
         otpSent = true;
@@ -94,33 +87,27 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
       return;
     }
 
-    setState(() => isVerifying = true);
+    setState(() {
+      isVerifying = true;
+      errorMessage = '';
+    });
 
-    final response = await http.post(
-      Uri.parse('http://localhost:3000/verify-otp'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'phone': formattedContact, 'code': otp}),
-    );
+    try {
+      bool success = await OtpService.verifyOtp(formattedContact, otp);
 
-    setState(() => isVerifying = false);
-
-    if (response.statusCode == 200) {
-      final responseBody = jsonDecode(response.body);
-      if (responseBody['success'] == true) {
-        setState(() {
-          otpVerified = true;
-          errorMessage = 'OTP verified successfully';
-        });
-      } else {
-        setState(() {
-          otpVerified = false;
-          errorMessage = responseBody['message'] ?? 'Invalid OTP';
-        });
-      }
-    } else {
-      setState(
-          () => errorMessage = 'OTP verification failed. Please try again.');
+      setState(() {
+        isVerifying = false;
+        otpVerified = success;
+        errorMessage = success ? 'OTP verified successfully' : 'Invalid OTP';
+      });
+    } catch (e) {
+      setState(() {
+        isVerifying = false;
+        errorMessage = 'OTP verification failed. Please try again.';
+      });
+      print('Error verifying OTP: $e');
     }
+
     print(errorMessage);
   }
 
@@ -519,6 +506,8 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
     _contactController.clear();
     _otpController.clear();
     _descriptionController.clear();
+    _nameController.clear();
+    _shortDescriptionController.clear();
     _complaintOnController.clear;
     complaintOnWhom = null;
     department = null;
