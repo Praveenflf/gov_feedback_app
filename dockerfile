@@ -19,14 +19,14 @@ RUN apk add --no-cache bash curl unzip && \
 
 WORKDIR /app
 
-# ✅ Fix: Copy the entire js folder *before* installing
+#Copy the entire js folder *before* installing
 COPY js ./js
 
-# ✅ Install dependencies inside js folder
+#Install dependencies inside js folder
 WORKDIR /app/js
 RUN npm install
 
-# ✅ Go back to /app for rest of code
+# Go back to /app for rest of code
 WORKDIR /app
 
 # Copy Flutter app code & pubspec
@@ -36,5 +36,5 @@ COPY pubspec.* ./
 EXPOSE 3000
 EXPOSE 8080
 
-# ✅ JSON format for CMD recommended
+# JSON format for CMD recommended
 CMD ["sh", "-c", "dart lib/main.dart & node js/server.js"]
